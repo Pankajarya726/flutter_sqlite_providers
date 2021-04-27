@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:sqlite_demo/ClientModel.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:sqlite_demo/ClientModel.dart';
 
 class DBProvider {
   DBProvider._();
@@ -23,8 +23,7 @@ class DBProvider {
   initDB() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, "TestDB.db");
-    return await openDatabase(path, version: 1, onOpen: (db) {},
-        onCreate: (Database db, int version) async {
+    return await openDatabase(path, version: 1, onOpen: (db) {}, onCreate: (Database db, int version) async {
       await db.execute("CREATE TABLE Client ("
           "id INTEGER PRIMARY KEY,"
           "first_name TEXT,"
@@ -49,20 +48,14 @@ class DBProvider {
 
   blockOrUnblock(Client client) async {
     final db = await database;
-    Client blocked = Client(
-        id: client.id,
-        firstName: client.firstName,
-        lastName: client.lastName,
-        blocked: !client.blocked);
-    var res = await db.update("Client", blocked.toMap(),
-        where: "id = ?", whereArgs: [client.id]);
+    Client blocked = Client(id: client.id, firstName: client.firstName, lastName: client.lastName, blocked: !client.blocked);
+    var res = await db.update("Client", blocked.toMap(), where: "id = ?", whereArgs: [client.id]);
     return res;
   }
 
   updateClient(Client newClient) async {
     final db = await database;
-    var res = await db.update("Client", newClient.toMap(),
-        where: "id = ?", whereArgs: [newClient.id]);
+    var res = await db.update("Client", newClient.toMap(), where: "id = ?", whereArgs: [newClient.id]);
     return res;
   }
 
@@ -79,22 +72,28 @@ class DBProvider {
     // var res = await db.rawQuery("SELECT * FROM Client WHERE blocked=1");
     var res = await db.query("Client", where: "blocked = ? ", whereArgs: [1]);
 
-    List<Client> list =
-        res.isNotEmpty ? res.map((c) => Client.fromMap(c)).toList() : [];
+    List<Client> list = res.isNotEmpty ? res.map((c) => Client.fromMap(c)).toList() : [];
     return list;
   }
 
   Future<List<Client>> getAllClients() async {
     final db = await database;
     var res = await db.query("Client");
-    List<Client> list =
-        res.isNotEmpty ? res.map((c) => Client.fromMap(c)).toList() : [];
+    List<Client> list = res.isNotEmpty ? res.map((c) => Client.fromMap(c)).toList() : [];
     return list;
+  }
+
+  Future<int> getClientsCount() async {
+    final db = await database;
+    var res = await db.query("Client");
+    List<Client> list = res.isNotEmpty ? res.map((c) => Client.fromMap(c)).toList() : [];
+    return list.length;
   }
 
   deleteClient(int id) async {
     final db = await database;
-    return db.delete("Client", where: "id = ?", whereArgs: [id]);
+    return db.rawDelete("DELETE FROM Client WHERE id =? ", [id]);
+    // return db.delete("Client", where: "id = ?", whereArgs: [id]);
   }
 
   deleteAll() async {

@@ -1,7 +1,10 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:sqlite_demo/ClientModel.dart';
 import 'package:sqlite_demo/Database.dart';
-import 'dart:math' as math;
+
+import 'bloc_user.dart';
 
 void main() => runApp(MaterialApp(home: MyApp()));
 
@@ -21,7 +24,23 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Flutter SQLite")),
+      appBar: AppBar(
+        title: Text("Flutter SQLite"),
+        actions: [
+          FutureBuilder(
+            future: DBProvider.db.getClientsCount(),
+            builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
+              if (snapshot.hasData) {
+                return Column(
+                  children: [Text(snapshot.data.toString()), Icon(Icons.shopping_cart_outlined)],
+                );
+              } else {
+                return Center(child: CircularProgressIndicator());
+              }
+            },
+          )
+        ],
+      ),
       body: FutureBuilder<List<Client>>(
         future: DBProvider.db.getAllClients(),
         builder: (BuildContext context, AsyncSnapshot<List<Client>> snapshot) {
@@ -54,6 +73,9 @@ class _MyAppState extends State<MyApp> {
             return Center(child: CircularProgressIndicator());
           }
         },
+      ),
+      bottomSheet: Container(
+        child: BlocUSer(),
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
